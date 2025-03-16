@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"github.com/niv-e/phonebook-api/internal/domain/entities"
+	"github.com/niv-e/phonebook-api/internal/domain/entity"
 )
 
 type ContactRepository interface {
-	Save(contact entities.Contact) error
+	Save(contact entity.ContactEntity) error
 	// Future methods: FindByID, FindAll, etc.
 }

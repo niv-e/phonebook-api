@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/google/uuid"
 	"github.com/niv-e/phonebook-api/internal/application/commands"
 	"github.com/niv-e/phonebook-api/internal/domain/repositories"
 )
@@ -19,6 +18,5 @@ func (h *AddContactHandler) Handle(cmd commands.AddContactCommand) error {
 	if err != nil {
 		return err
 	}
-	contact.ID = uuid.New()
 	return h.repo.Save(contact)
 }

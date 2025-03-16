@@ -20,6 +20,50 @@ A simple RESTful API for managing a phone book, built with Golang using Clean Ar
 - **Clean Architecture**: Separates domain logic from infrastructure and delivery, ensuring a focus on business rules.
 - **CQRS Pattern**: Implements Command Query Responsibility Segregation to separate write (commands) and read (queries) operations, enhancing scalability and flexibility.
 
+### ERD Diagram
+```mermaid
+erDiagram
+    CONTACT {
+        int id PK
+        string first_name
+        string last_name
+        int address_id FK
+    }
+    
+    PHONE_NUMBER {
+        int id PK
+        int contact_id FK
+        string number "E.164 format"
+        string type "mobile, home, work, etc."
+    }
+    
+    ADDRESS {
+        int id PK
+        string street
+        string postal_code
+        int city_id FK
+    }
+    
+    CITY {
+        int id PK
+        string name
+        int country_id FK
+    }
+    
+    COUNTRY {
+        int id PK
+        string name
+        string alpha2_code "ISO 3166-1 alpha-2"
+        string alpha3_code "ISO 3166-1 alpha-3"
+        string numeric_code "ISO 3166-1 numeric"
+    }
+    
+    CONTACT ||--o{ PHONE_NUMBER : has
+    CONTACT ||--|| ADDRESS : has
+    ADDRESS }o--|| CITY : belongs_to
+    CITY }o--|| COUNTRY : belongs_to
+```
+
 ### Architecture Notes
 - **UUID for Entity IDs**: The entities uses `uuid.UUID` (from `github.com/google/uuid`) as its `ID` field. This decision supports cloud-native scalability by ensuring globally unique identifiers without reliance on a centralized database sequence. UUIDs are particularly beneficial for future sharding, distributed systems, or multi-region deployments with PostgreSQL, which natively supports the `UUID` type. While this increases storage (16 bytes vs. 4-8 bytes for integers), it eliminates ID collision risks and simplifies integration in a distributed architecture.
 
