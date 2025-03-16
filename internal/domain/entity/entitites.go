@@ -6,7 +6,7 @@ import (
 
 // ContactEntity represents a person's basic information
 type ContactEntity struct {
-	ID        *string       `json:"id" gorm:"primaryKey"`
+	ID        *string       `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	FirstName string        `json:"first_name"`
 	LastName  string        `json:"last_name"`
 	AddressID uint          `json:"address_id"`
@@ -19,7 +19,7 @@ type ContactEntity struct {
 // PhoneEntity represents a phone number in E.164 format
 type PhoneEntity struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
-	ContactID uint      `json:"contact_id"`
+	ContactID string    `json:"contact_id"`
 	Number    string    `json:"number" gorm:"comment:E.164 format phone number"`
 	Type      string    `json:"type" gorm:"comment:mobile, home, work, etc."`
 	CreatedAt time.Time `json:"created_at"`

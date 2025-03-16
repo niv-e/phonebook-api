@@ -83,3 +83,5 @@ erDiagram
 2. Build and run the app:
    ```bash
    docker-compose up --build
+   ```
+3. Access the Swagger UI at `http://localhost:8080/swagger/`.

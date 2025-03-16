@@ -3,7 +3,7 @@ package model
 import "github.com/niv-e/phonebook-api/internal/domain"
 
 type AddressType struct {
-	StreetId   string
+	Street     string
 	CityId     string
 	PostalCode string
 	CountryId  string
@@ -18,7 +18,7 @@ func NewAddress(streetId, cityId, postalCode, countryId string) (AddressType, er
 	}
 
 	return AddressType{
-		StreetId:   streetId,
+		Street:     streetId,
 		CityId:     cityId,
 		PostalCode: postalCode,
 		CountryId:  countryId,

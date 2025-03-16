@@ -36,7 +36,7 @@ func (c AddContactCommand) ToContact() (entity.ContactEntity, error) {
 		FirstName: c.FirstName,
 		LastName:  c.LastName,
 		Address: entity.AddressEntity{
-			Street:     c.Address.StreetId,
+			Street:     c.Address.Street,
 			PostalCode: c.Address.PostalCode,
 			City: entity.CityEntity{
 				Name: c.Address.CityId,
