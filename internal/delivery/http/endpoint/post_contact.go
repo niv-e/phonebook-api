@@ -7,7 +7,6 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	"github.com/niv-e/phonebook-api/internal/application/commands"
-	"github.com/niv-e/phonebook-api/internal/application/dto"
 	"github.com/niv-e/phonebook-api/internal/application/handlers"
 	"github.com/niv-e/phonebook-api/internal/application/model"
 	"github.com/niv-e/phonebook-api/internal/domain"
@@ -16,13 +15,13 @@ import (
 
 // AddContactRequest represents the request payload for adding a contact
 type AddContactRequest struct {
-	FirstName  string       `json:"first_name" validate:"required"`
-	LastName   string       `json:"last_name"`
-	Phone      dto.PhoneDTO `json:"phone" validate:"required"`
-	StreetId   string       `json:"street" validate:"required"`
-	CityId     string       `json:"city" validate:"required"`
-	PostalCode string       `json:"postal_code"`
-	CountryId  string       `json:"country" validate:"required"`
+	FirstName  string            `json:"first_name" validate:"required"`
+	LastName   string            `json:"last_name"`
+	Phones     []model.PhoneType `json:"phones" validate:"required,dive"`
+	Street     string            `json:"street" validate:"required"`
+	CityId     uint              `json:"city" validate:"required"`
+	PostalCode string            `json:"postal_code"`
+	CountryId  uint              `json:"country" validate:"required"`
 }
 
 // AddContactHttpHandler handles the HTTP request for adding a contact
@@ -77,15 +76,15 @@ func (r AddContactRequest) Validate() error {
 }
 
 func (r AddContactRequest) ToCommand() (commands.AddContactCommand, error) {
-	phone, err := model.NewPhone(r.Phone.Type, r.Phone.Number)
+	var phones []model.PhoneType
+	for _, phone := range r.Phones {
+		phones = append(phones, phone)
+	}
+
+	address, err := model.NewAddress(r.Street, r.PostalCode, r.CityId, r.CountryId)
 	if err != nil {
 		return commands.AddContactCommand{}, err
 	}
 
-	address, err := model.NewAddress(r.StreetId, r.CityId, r.PostalCode, r.CountryId)
-	if err != nil {
-		return commands.AddContactCommand{}, err
-	}
-
-	return commands.NewAddContactCommand(r.FirstName, r.LastName, phone, address)
+	return commands.NewAddContactCommand(r.FirstName, r.LastName, phones, address)
 }

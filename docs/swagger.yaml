@@ -1,24 +1,19 @@
 basePath: /
 definitions:
-  dto.PhoneDTO:
-    properties:
-      number:
-        type: string
-      type:
-        type: string
-    type: object
-  internal_delivery_http_endpoint.AddContactRequest:
+  http.AddContactRequest:
     properties:
       city:
-        type: string
+        type: integer
       country:
-        type: string
+        type: integer
       first_name:
         type: string
       last_name:
         type: string
-      phone:
-        $ref: '#/definitions/dto.PhoneDTO'
+      phones:
+        items:
+          $ref: '#/definitions/model.PhoneType'
+        type: array
       postal_code:
         type: string
       street:
@@ -27,8 +22,41 @@ definitions:
     - city
     - country
     - first_name
-    - phone
+    - phones
     - street
+    type: object
+  model.AddressType:
+    properties:
+      cityId:
+        type: integer
+      countryId:
+        type: integer
+      postalCode:
+        type: string
+      street:
+        type: string
+    type: object
+  model.ContactType:
+    properties:
+      address:
+        $ref: '#/definitions/model.AddressType'
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      phones:
+        items:
+          $ref: '#/definitions/model.PhoneType'
+        type: array
+    type: object
+  model.PhoneType:
+    properties:
+      number:
+        type: string
+      type:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -45,6 +73,36 @@ info:
   version: "1.0"
 paths:
   /contacts:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated contacts from the phone book
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ContactType'
+            type: array
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Failed to fetch contacts
+          schema:
+            type: string
+      summary: Get paginated contacts
+      tags:
+      - contacts
     post:
       consumes:
       - application/json
@@ -55,14 +113,14 @@ paths:
         name: contact
         required: true
         schema:
-          $ref: '#/definitions/internal_delivery_http_endpoint.AddContactRequest'
+          $ref: '#/definitions/http.AddContactRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_delivery_http_endpoint.AddContactRequest'
+            $ref: '#/definitions/http.AddContactRequest'
         "400":
           description: Invalid request payload
           schema:

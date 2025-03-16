@@ -3,12 +3,11 @@ package tests
 import (
 	"testing"
 
-	"github.com/niv-e/phonebook-api/internal/application/dto"
 	"github.com/niv-e/phonebook-api/internal/application/model"
 )
 
 func TestNewPhone_ValidE164Format_ShouldCreatePhone(t *testing.T) {
-	validNumbers := []dto.PhoneDTO{
+	validNumbers := []model.PhoneType{
 		{Type: "mobile", Number: "+12025550123"},
 		{Type: "mobile", Number: "+442071838750"},
 		{Type: "mobile", Number: "+8613800138000"},
@@ -23,7 +22,7 @@ func TestNewPhone_ValidE164Format_ShouldCreatePhone(t *testing.T) {
 }
 
 func TestNewPhone_InvalidE164Format_ShouldReturnError(t *testing.T) {
-	invalidNumbers := []dto.PhoneDTO{
+	invalidNumbers := []model.PhoneType{
 		{Type: "mobile", Number: "2025550123"},       // Missing '+'
 		{Type: "mobile", Number: "+1 202-555-0123"},  // Contains spaces and dashes
 		{Type: "mobile", Number: "+120255501234567"}, // Too long

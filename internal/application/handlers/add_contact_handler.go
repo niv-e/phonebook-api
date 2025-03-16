@@ -14,7 +14,7 @@ func NewAddContactHandler(repo repositories.ContactRepository) *AddContactHandle
 }
 
 func (h *AddContactHandler) Handle(cmd commands.AddContactCommand) error {
-	contact, err := cmd.ToContact()
+	contact, err := cmd.ToContactType()
 	if err != nil {
 		return err
 	}

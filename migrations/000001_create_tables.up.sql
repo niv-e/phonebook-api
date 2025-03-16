@@ -1,6 +1,8 @@
+-- Create extension for UUID generation
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE countries (
+-- Create countries table
+CREATE TABLE IF NOT EXISTS countries (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     alpha2_code CHAR(2) NOT NULL,
@@ -10,7 +12,8 @@ CREATE TABLE countries (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE cities (
+-- Create cities table
+CREATE TABLE IF NOT EXISTS cities (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     country_id INTEGER NOT NULL REFERENCES countries(id),
@@ -18,7 +21,8 @@ CREATE TABLE cities (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE addresses (
+-- Create addresses table
+CREATE TABLE IF NOT EXISTS addresses (
     id SERIAL PRIMARY KEY,
     street VARCHAR(255) NOT NULL,
     postal_code VARCHAR(20),
@@ -27,7 +31,8 @@ CREATE TABLE addresses (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE contacts (
+-- Create contacts table
+CREATE TABLE IF NOT EXISTS contacts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -36,7 +41,8 @@ CREATE TABLE contacts (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE phones (
+-- Create phones table
+CREATE TABLE IF NOT EXISTS phones (
     id SERIAL PRIMARY KEY,
     contact_id UUID NOT NULL REFERENCES contacts(id),
     number VARCHAR(15) NOT NULL CHECK (number ~ '^\+[1-9]\d{6,14}$'),

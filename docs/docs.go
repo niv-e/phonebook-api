@@ -25,6 +25,51 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/contacts": {
+            "get": {
+                "description": "Get paginated contacts from the phone book",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Get paginated contacts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ContactType"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch contacts",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Add a new contact to the phone book",
                 "consumes": [
@@ -44,7 +89,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_delivery_http_endpoint.AddContactRequest"
+                            "$ref": "#/definitions/http.AddContactRequest"
                         }
                     }
                 ],
@@ -52,7 +97,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_delivery_http_endpoint.AddContactRequest"
+                            "$ref": "#/definitions/http.AddContactRequest"
                         }
                     },
                     "400": {
@@ -72,32 +117,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.PhoneDTO": {
-            "type": "object",
-            "properties": {
-                "number": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_delivery_http_endpoint.AddContactRequest": {
+        "http.AddContactRequest": {
             "type": "object",
             "required": [
                 "city",
                 "country",
                 "first_name",
-                "phone",
+                "phones",
                 "street"
             ],
             "properties": {
                 "city": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "country": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "first_name": {
                     "type": "string"
@@ -105,13 +139,67 @@ const docTemplate = `{
                 "last_name": {
                     "type": "string"
                 },
-                "phone": {
-                    "$ref": "#/definitions/dto.PhoneDTO"
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PhoneType"
+                    }
                 },
                 "postal_code": {
                     "type": "string"
                 },
                 "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AddressType": {
+            "type": "object",
+            "properties": {
+                "cityId": {
+                    "type": "integer"
+                },
+                "countryId": {
+                    "type": "integer"
+                },
+                "postalCode": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ContactType": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/model.AddressType"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PhoneType"
+                    }
+                }
+            }
+        },
+        "model.PhoneType": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

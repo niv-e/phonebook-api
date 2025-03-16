@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	_ "github.com/niv-e/phonebook-api/docs" // This is required to load the generated docs
 	api "github.com/niv-e/phonebook-api/internal/delivery/http/endpoint"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -24,13 +25,16 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	http.HandleFunc("/contacts", api.AddContactHttpHandler)
+	r := chi.NewRouter()
+
+	r.Post("/contacts", api.AddContactHttpHandler)
+	r.Get("/contacts", api.GetContactsHttpHandler)
 
 	// Serve the Swagger UI
-	http.Handle("/swagger/", httpSwagger.WrapHandler)
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

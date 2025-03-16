@@ -6,14 +6,14 @@ import (
 )
 
 type ContactType struct {
-	ID        uuid.UUID
+	ID        *uuid.UUID
 	FirstName string
 	LastName  string
-	Phone     PhoneType
+	Phones    []PhoneType
 	Address   AddressType
 }
 
-func NewContact(id uuid.UUID, firstName, lastName string, phone PhoneType, address AddressType) (ContactType, error) {
+func NewContact(id *uuid.UUID, firstName, lastName string, phone []PhoneType, address AddressType) (ContactType, error) {
 	if firstName == "" {
 		return ContactType{}, domain.NewInvalidContactError("firstName is required")
 	}
@@ -24,7 +24,7 @@ func NewContact(id uuid.UUID, firstName, lastName string, phone PhoneType, addre
 		ID:        id,
 		FirstName: firstName,
 		LastName:  lastName,
-		Phone:     phone,
+		Phones:    phone,
 		Address:   address,
 	}, nil
 }

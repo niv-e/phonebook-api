@@ -7,8 +7,8 @@ import (
 )
 
 type PhoneType struct {
-	Value string
-	Type  string
+	Number string
+	Type   string
 }
 
 func NewPhone(phoneType string, value string) (PhoneType, error) {
@@ -17,9 +17,9 @@ func NewPhone(phoneType string, value string) (PhoneType, error) {
 	if err := validate.Var(value, "e164"); err != nil {
 		return PhoneType{}, err
 	}
-	return PhoneType{Type: phoneType, Value: value}, nil
+	return PhoneType{Type: phoneType, Number: value}, nil
 }
 
 func (p PhoneType) String() string {
-	return fmt.Sprintf("%s: %s", p.Type, p.Value)
+	return fmt.Sprintf("%s: %s", p.Type, p.Number)
 }

@@ -2,11 +2,13 @@ package entity
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // ContactEntity represents a person's basic information
 type ContactEntity struct {
-	ID        *string       `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	ID        uuid.UUID     `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	FirstName string        `json:"first_name"`
 	LastName  string        `json:"last_name"`
 	AddressID uint          `json:"address_id"`
@@ -16,14 +18,22 @@ type ContactEntity struct {
 	UpdatedAt time.Time     `json:"updated_at"`
 }
 
+func (ContactEntity) TableName() string {
+	return "contacts"
+}
+
 // PhoneEntity represents a phone number in E.164 format
 type PhoneEntity struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
-	ContactID string    `json:"contact_id"`
+	ContactID uuid.UUID `json:"contact_id"`
 	Number    string    `json:"number" gorm:"comment:E.164 format phone number"`
 	Type      string    `json:"type" gorm:"comment:mobile, home, work, etc."`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (PhoneEntity) TableName() string {
+	return "phones"
 }
 
 // AddressEntity represents a physical location
@@ -37,6 +47,10 @@ type AddressEntity struct {
 	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
+func (AddressEntity) TableName() string {
+	return "addresses"
+}
+
 // CityEntity represents a city or town
 type CityEntity struct {
 	ID        uint          `json:"id" gorm:"primaryKey"`
@@ -45,6 +59,10 @@ type CityEntity struct {
 	Country   CountryEntity `json:"country" gorm:"foreignKey:CountryID"`
 	CreatedAt time.Time     `json:"created_at"`
 	UpdatedAt time.Time     `json:"updated_at"`
+}
+
+func (CityEntity) TableName() string {
+	return "cities"
 }
 
 // CountryEntity represents a country based on ISO 3166
@@ -56,4 +74,8 @@ type CountryEntity struct {
 	NumericCode string    `json:"numeric_code" gorm:"size:3;comment:ISO 3166-1 numeric code"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (CountryEntity) TableName() string {
+	return "countries"
 }
