@@ -84,4 +84,7 @@ erDiagram
    ```bash
    docker-compose up --build
    ```
-3. Access the Swagger UI at `http://localhost:8080/swagger/`.
+3. Access the Swagger UI at http://localhost:8080/swagger/.
+4. Access Jaeger UI at http://localhost:16686.
+5. Access Prometheus UI at http://localhost:9090.
+6. Access Grafana UI at http://localhost:3000.
