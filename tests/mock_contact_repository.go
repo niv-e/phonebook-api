@@ -70,3 +70,28 @@ func (m *MockContactRepository) Update(contact model.ContactType) error {
 	}
 	return nil
 }
+
+func (m *MockContactRepository) Search(firstName, lastName, fullName, phone string) ([]model.ContactType, error) {
+	if m.Err != nil {
+		return nil, m.Err
+	}
+	var results []model.ContactType
+	for _, contact := range m.Contacts {
+		if (firstName != "" && contact.FirstName == firstName) ||
+			(lastName != "" && contact.LastName == lastName) ||
+			(fullName != "" && contact.FirstName+" "+contact.LastName == fullName) ||
+			(phone != "" && containsPhone(contact.Phones, phone)) {
+			results = append(results, contact)
+		}
+	}
+	return results, nil
+}
+
+func containsPhone(phones []model.PhoneType, phone string) bool {
+	for _, p := range phones {
+		if p.Number == phone {
+			return true
+		}
+	}
+	return false
+}

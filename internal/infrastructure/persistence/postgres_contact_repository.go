@@ -156,6 +156,48 @@ func (r *PostgresContactRepository) Update(contact model.ContactType) error {
 	return r.db.Save(&contactEntity).Error
 }
 
+func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone string) ([]model.ContactType, error) {
+	var contacts []entity.ContactEntity
+	query := r.db.Preload("Address.City.Country").Preload("Phones")
+
+	if firstName != "" {
+		query = query.Where("first_name ILIKE ?", "%"+firstName+"%")
+	}
+	if lastName != "" {
+		query = query.Where("last_name ILIKE ?", "%"+lastName+"%")
+	}
+	if fullName != "" {
+		query = query.Where("CONCAT(first_name, ' ', last_name) ILIKE ?", "%"+fullName+"%")
+	}
+	if phone != "" {
+		query = query.Joins("JOIN phones ON phones.contact_id = contacts.id").Where("phones.number ILIKE ?", "%"+phone+"%")
+	}
+
+	if err := query.Find(&contacts).Error; err != nil {
+		return nil, err
+	}
+
+	var contactDTOs []model.ContactType
+	for _, contact := range contacts {
+		contactDTOs = append(contactDTOs, model.ContactType{
+			ID:        &contact.ID,
+			FirstName: contact.FirstName,
+			LastName:  contact.LastName,
+			Address: model.AddressType{
+				Street:      contact.Address.Street,
+				PostalCode:  contact.Address.PostalCode,
+				CityId:      contact.Address.City.ID,
+				CityName:    contact.Address.City.Name,
+				CountryId:   contact.Address.City.Country.ID,
+				CountryName: contact.Address.City.Country.Name,
+			},
+			Phones: convertToPhoneDTOs(contact.Phones),
+		})
+	}
+
+	return contactDTOs, nil
+}
+
 func convertToPhoneEntities(phones []model.PhoneType) []entity.PhoneEntity {
 	var phoneEntities []entity.PhoneEntity
 	for _, phone := range phones {

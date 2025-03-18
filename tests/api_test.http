@@ -50,3 +50,25 @@ Accept: application/json
     "street": "123 Updated St",
     "postal_code": "54321"
 }
+
+
+###
+GET {{baseUrl}}/contacts/search?first_name=Niv
+Accept: application/json
+
+###
+GET {{baseUrl}}/contacts/search?last_name=Eliyahu
+Accept: application/json
+
+###
+GET {{baseUrl}}/contacts/search?full_name=Niv%20Eliyahu
+Accept: application/json
+
+###
+#this should return no results
+GET {{baseUrl}}/contacts/search?full_name=Niv2%20Eliyahu
+Accept: application/json
+
+###
+GET {{baseUrl}}/contacts/search?phone=%2B1234567890
+Accept: application/json

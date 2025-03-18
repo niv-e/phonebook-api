@@ -103,6 +103,8 @@ func newHTTPHandler() http.Handler {
 		}
 	})
 
+	handleFunc("/contacts/search", api.SearchContactHttpHandler(repo))
+
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// Add HTTP instrumentation for the whole server.

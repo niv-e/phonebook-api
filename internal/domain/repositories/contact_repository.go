@@ -11,4 +11,5 @@ type ContactRepository interface {
 	Delete(id uuid.UUID) error
 	FindByID(id uuid.UUID) (model.ContactType, error)
 	Update(contact model.ContactType) error
+	Search(firstName, lastName, fullName, phone string) ([]model.ContactType, error)
 }
