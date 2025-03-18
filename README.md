@@ -11,7 +11,9 @@ A simple RESTful API for managing a phone book, built with Golang using Clean Ar
 - `internal/application/` - Use cases orchestrating domain logic.
   - `commands/` - CQRS command definitions (e.g., `add_contact_command.go`).
   - `handlers/` - Handlers for commands (e.g., `add_contact_handler.go`).
-- `internal/infrastructure/` - External systems (e.g., database, logging; to be implemented).
+  - `queries/` - CQRS query definitions (e.g., `search_contact_query.go`).
+- `internal/infrastructure/` - External systems (e.g., database, logging).
+  - `persistence/` - Database implementations (e.g., `postgres_contact_repository.go`).
 - `internal/delivery/` - API handlers and request structs.
   - `http/` - HTTP endpoints (e.g., `add_contact_request.go`).
 - `tests/` - Test files (e.g., `add_contact_test.go`, `phone_test.go`).
@@ -28,13 +30,7 @@ erDiagram
         string first_name
         string last_name
         int address_id FK
-    }
-    
-    PHONE_NUMBER {
-        int id PK
-        int contact_id FK
-        string number "E.164 format"
-        string type "mobile, home, work, etc."
+        jsonb phones
     }
     
     ADDRESS {
@@ -58,14 +54,18 @@ erDiagram
         string numeric_code "ISO 3166-1 numeric"
     }
     
-    CONTACT ||--o{ PHONE_NUMBER : has
     CONTACT ||--|| ADDRESS : has
     ADDRESS }o--|| CITY : belongs_to
     CITY }o--|| COUNTRY : belongs_to
 ```
 
 ### Architecture Notes
+
 - **UUID for Entity IDs**: The entities uses `uuid.UUID` (from `github.com/google/uuid`) as its `ID` field. This decision supports cloud-native scalability by ensuring globally unique identifiers without reliance on a centralized database sequence. UUIDs are particularly beneficial for future sharding, distributed systems, or multi-region deployments with PostgreSQL, which natively supports the `UUID` type. While this increases storage (16 bytes vs. 4-8 bytes for integers), it eliminates ID collision risks and simplifies integration in a distributed architecture.
+
+- **UUID for Entity IDs**: The entities use uuid.UUID (from github.com/google/uuid) as their ID field. This decision supports cloud-native scalability by ensuring globally unique identifiers without reliance on a centralized database sequence. UUIDs are particularly beneficial for future sharding, distributed systems, or multi-region deployments with PostgreSQL, which natively supports the UUID type. While this increases storage (16 bytes vs. 4-8 bytes for integers), it eliminates ID collision risks and simplifies integration in a distributed architecture.
+- **Phone Numbers as JSONB**: Phone numbers are stored as a JSONB array within the Contact entity. This decision avoids expensive join operations and transactions, improving write performance. Since phone numbers are frequently updated along with contact information, this denormalization reduces the complexity and cost of maintaining separate tables for phone numbers.
+- **Normalized Cities and Countries**: Cities and countries are normalized into separate tables because they are primarily used for read operations. This normalization ensures data consistency and reduces redundancy, as cities and countries are rarely updated.
 
 ### Domain-Driven Design (DDD) Decisions
 - **Contact as Aggregate Root**: The `Contact` entity is defined as an aggregate root, encapsulating `Phone` and `Address` as value objects. All commands and queries interact with `Contact` as the entry point, ensuring consistency within its boundary. This aligns with DDD by centralizing business rules (e.g., validation of `Phone` in E.164 format) within the aggregate.

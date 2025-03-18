@@ -37,16 +37,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     address_id INTEGER NOT NULL REFERENCES addresses(id),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create phones table
-CREATE TABLE IF NOT EXISTS phones (
-    id SERIAL PRIMARY KEY,
-    contact_id UUID NOT NULL REFERENCES contacts(id),
-    number VARCHAR(15) NOT NULL CHECK (number ~ '^\+[1-9]\d{6,14}$'),
-    type VARCHAR(50) NOT NULL,
+    phones JSONB NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

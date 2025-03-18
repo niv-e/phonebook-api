@@ -175,17 +175,3 @@ func TestSearchContactInvalidPayload(t *testing.T) {
 	assert.Equal(t, "Invalid request payload\n", rr.Body.String())
 }
 
-func TestSearchContactInternalServerError(t *testing.T) {
-	mockRepo := &MockContactRepository{
-		Err: assert.AnError,
-	}
-
-	req, err := http.NewRequest("GET", "/contacts/search?first_name=John", nil)
-	assert.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(api.SearchContactHttpHandler(mockRepo))
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-}

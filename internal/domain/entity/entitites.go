@@ -4,36 +4,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 // ContactEntity represents a person's basic information
 type ContactEntity struct {
-	ID        uuid.UUID     `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	FirstName string        `json:"first_name"`
-	LastName  string        `json:"last_name"`
-	AddressID uint          `json:"address_id"`
-	Address   AddressEntity `json:"address" gorm:"foreignKey:AddressID"`
-	Phones    []PhoneEntity `json:"phones" gorm:"foreignKey:ContactID"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
+	ID        uuid.UUID      `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	FirstName string         `json:"first_name"`
+	LastName  string         `json:"last_name"`
+	AddressID uint           `json:"address_id"`
+	Address   AddressEntity  `json:"address" gorm:"foreignKey:AddressID"`
+	Phones    datatypes.JSON `json:"phones" gorm:"type:jsonb"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 func (ContactEntity) TableName() string {
 	return "contacts"
-}
-
-// PhoneEntity represents a phone number in E.164 format
-type PhoneEntity struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	ContactID uuid.UUID `json:"contact_id"`
-	Number    string    `json:"number" gorm:"comment:E.164 format phone number"`
-	Type      string    `json:"type" gorm:"comment:mobile, home, work, etc."`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func (PhoneEntity) TableName() string {
-	return "phones"
 }
 
 // AddressEntity represents a physical location

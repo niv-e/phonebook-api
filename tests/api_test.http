@@ -1,5 +1,4 @@
 @baseUrl=http://localhost:8080
-#@baseUrl=http://api:8080
 ###
 GET {{baseUrl}}/contacts?page=1
 Accept: application/json
@@ -25,18 +24,18 @@ Accept: application/json
 }
 
 ###
-@contactId=16a4e190-c9ab-431a-8401-dde695875ea3
-DELETE {{baseUrl}}/contacts?id={{contactId}}
+@contactIdToDelete="47b7ee66-0eb6-44b1-a41e-ab5b69c0d1fc"
+DELETE {{baseUrl}}/contacts?id={{contactIdToDelete}}
 Accept: application/json
 
 ###
-@contactId=0ef57a66-ce41-4bea-8443-2578228c3f83
+@contactIdToUpdate=375f0535-2f49-4527-aa90-45214093b202
 PUT {{baseUrl}}/contacts
 Content-Type: application/json
 Accept: application/json
 
 {
-    "id": "{{contactId}}",
+    "id": "{{contactIdToUpdate}}",
     "city": 1,
     "country": 1,
     "first_name": "UpdatedFirstName",
@@ -44,7 +43,7 @@ Accept: application/json
     "phones": [
         {
             "type": "mobile",
-            "number": "+1234567890"
+            "number": "+1235555555"
         }
     ],
     "street": "123 Updated St",
@@ -53,23 +52,25 @@ Accept: application/json
 
 
 ###
-GET {{baseUrl}}/contacts/search?first_name=Niv
+GET {{baseUrl}}/contacts/search?first_name=Jane
 Accept: application/json
 
 ###
-GET {{baseUrl}}/contacts/search?last_name=Eliyahu
+GET {{baseUrl}}/contacts/search?last_name=Johnson
 Accept: application/json
 
 ###
-GET {{baseUrl}}/contacts/search?full_name=Niv%20Eliyahu
+GET {{baseUrl}}/contacts/search?full_name=Alice%Johnson
 Accept: application/json
 
 ###
 #this should return no results
-GET {{baseUrl}}/contacts/search?full_name=Niv2%20Eliyahu
+GET {{baseUrl}}/contacts/search?full_name=Jane%Johnson
 Accept: application/json
 
 ###
-GET {{baseUrl}}/contacts/search?phone=%2B1234567890
+
+@phoneNumberWithPlus=442071234567
+GET {{baseUrl}}/contacts/search?phone=%2B{{phoneNumberWithPlus}}
 Accept: application/json
 

@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"sync"
@@ -47,6 +48,11 @@ func NewPostgresContactRepository(dsn string) (*PostgresContactRepository, error
 }
 
 func (r *PostgresContactRepository) Save(contact model.ContactType) error {
+	phonesJSON, err := json.Marshal(contact.Phones)
+	if err != nil {
+		return err
+	}
+
 	contactEntity := entity.ContactEntity{
 		FirstName: contact.FirstName,
 		LastName:  contact.LastName,
@@ -60,7 +66,7 @@ func (r *PostgresContactRepository) Save(contact model.ContactType) error {
 				},
 			},
 		},
-		Phones: convertToPhoneEntities(contact.Phones),
+		Phones: phonesJSON,
 	}
 	log.Printf("Saving contact: %v", contactEntity)
 	log.Printf("object address: %v", &contactEntity)
@@ -70,12 +76,17 @@ func (r *PostgresContactRepository) Save(contact model.ContactType) error {
 func (r *PostgresContactRepository) FindPaginated(page, pageSize int) ([]model.ContactType, error) {
 	var contacts []entity.ContactEntity
 	offset := (page - 1) * pageSize
-	if err := r.db.Preload("Address.City.Country").Preload("Phones").Limit(pageSize).Offset(offset).Find(&contacts).Error; err != nil {
+	if err := r.db.Preload("Address.City.Country").Limit(pageSize).Offset(offset).Find(&contacts).Error; err != nil {
 		return nil, err
 	}
 
 	var contactDTOs []model.ContactType
 	for _, contact := range contacts {
+		var phones []model.PhoneType
+		if err := json.Unmarshal([]byte(contact.Phones), &phones); err != nil {
+			return nil, err
+		}
+
 		contactDTOs = append(contactDTOs, model.ContactType{
 			ID:        &contact.ID,
 			FirstName: contact.FirstName,
@@ -88,7 +99,7 @@ func (r *PostgresContactRepository) FindPaginated(page, pageSize int) ([]model.C
 				CountryId:   contact.Address.City.Country.ID,
 				CountryName: contact.Address.City.Country.Name,
 			},
-			Phones: convertToPhoneDTOs(contact.Phones),
+			Phones: phones,
 		})
 	}
 
@@ -96,27 +107,20 @@ func (r *PostgresContactRepository) FindPaginated(page, pageSize int) ([]model.C
 }
 
 func (r *PostgresContactRepository) Delete(id uuid.UUID) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		// Delete related phones
-		if err := tx.Where("contact_id = ?", id).Delete(&entity.PhoneEntity{}).Error; err != nil {
-			return err
-		}
-
-		// Delete the contact
-		if err := tx.Delete(&entity.ContactEntity{ID: id}).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
+	return r.db.Delete(&entity.ContactEntity{ID: id}).Error
 }
 
 func (r *PostgresContactRepository) FindByID(id uuid.UUID) (model.ContactType, error) {
 	var contact entity.ContactEntity
-	if err := r.db.Preload("Address.City.Country").Preload("Phones").First(&contact, "id = ?", id).Error; err != nil {
+	if err := r.db.Preload("Address.City.Country").First(&contact, "id = ?", id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return model.ContactType{}, domain.NewInvalidContactError("contact not found")
 		}
+		return model.ContactType{}, err
+	}
+
+	var phones []model.PhoneType
+	if err := json.Unmarshal(contact.Phones, &phones); err != nil {
 		return model.ContactType{}, err
 	}
 
@@ -132,11 +136,16 @@ func (r *PostgresContactRepository) FindByID(id uuid.UUID) (model.ContactType, e
 			CountryId:   contact.Address.City.Country.ID,
 			CountryName: contact.Address.City.Country.Name,
 		},
-		Phones: convertToPhoneDTOs(contact.Phones),
+		Phones: phones,
 	}, nil
 }
 
 func (r *PostgresContactRepository) Update(contact model.ContactType) error {
+	phonesJSON, err := json.Marshal(contact.Phones)
+	if err != nil {
+		return err
+	}
+
 	contactEntity := entity.ContactEntity{
 		ID:        *contact.ID,
 		FirstName: contact.FirstName,
@@ -151,14 +160,14 @@ func (r *PostgresContactRepository) Update(contact model.ContactType) error {
 				},
 			},
 		},
-		Phones: convertToPhoneEntities(contact.Phones),
+		Phones: phonesJSON,
 	}
 	return r.db.Save(&contactEntity).Error
 }
 
 func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone string) ([]model.ContactType, error) {
 	var contacts []entity.ContactEntity
-	query := r.db.Preload("Address.City.Country").Preload("Phones")
+	query := r.db.Preload("Address.City.Country")
 
 	if firstName != "" {
 		query = query.Where("first_name ILIKE ?", "%"+firstName+"%")
@@ -170,8 +179,8 @@ func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone 
 		query = query.Where("CONCAT(first_name, ' ', last_name) ILIKE ?", "%"+fullName+"%")
 	}
 	if phone != "" {
-		query = query.Joins("JOIN phones ON phones.contact_id = contacts.id").Where("phones.number ILIKE ?", "%"+phone+"%")
-	}
+        query = query.Where("EXISTS (SELECT 1 FROM jsonb_array_elements(phones) AS p WHERE p->>'number' ILIKE ?)", "%"+phone+"%")
+    }
 
 	if err := query.Find(&contacts).Error; err != nil {
 		return nil, err
@@ -179,6 +188,11 @@ func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone 
 
 	var contactDTOs []model.ContactType
 	for _, contact := range contacts {
+		var phones []model.PhoneType
+		if err := json.Unmarshal(contact.Phones, &phones); err != nil {
+			return nil, err
+		}
+
 		contactDTOs = append(contactDTOs, model.ContactType{
 			ID:        &contact.ID,
 			FirstName: contact.FirstName,
@@ -191,31 +205,9 @@ func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone 
 				CountryId:   contact.Address.City.Country.ID,
 				CountryName: contact.Address.City.Country.Name,
 			},
-			Phones: convertToPhoneDTOs(contact.Phones),
+			Phones: phones,
 		})
 	}
 
 	return contactDTOs, nil
-}
-
-func convertToPhoneEntities(phones []model.PhoneType) []entity.PhoneEntity {
-	var phoneEntities []entity.PhoneEntity
-	for _, phone := range phones {
-		phoneEntities = append(phoneEntities, entity.PhoneEntity{
-			Number: phone.Number,
-			Type:   phone.Type,
-		})
-	}
-	return phoneEntities
-}
-
-func convertToPhoneDTOs(phones []entity.PhoneEntity) []model.PhoneType {
-	var phoneDTOs []model.PhoneType
-	for _, phone := range phones {
-		phoneDTOs = append(phoneDTOs, model.PhoneType{
-			Number: phone.Number,
-			Type:   phone.Type,
-		})
-	}
-	return phoneDTOs
 }

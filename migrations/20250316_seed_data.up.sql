@@ -71,11 +71,16 @@ VALUES
     ('1717 Shibuya Crossing', '150-0002', (SELECT id FROM cities WHERE name = 'Tokyo'));
 
 -- Seed data for contacts
-INSERT INTO contacts (id, first_name, last_name, address_id)
+INSERT INTO contacts (id, first_name, last_name, address_id, phones)
 VALUES
-    (uuid_generate_v4(), 'John', 'Doe', (SELECT id FROM addresses WHERE street = '123 Main St'));
-
--- Seed data for phones
-INSERT INTO phones (contact_id, number, type)
-VALUES
-    ((SELECT id FROM contacts WHERE first_name = 'John' AND last_name = 'Doe'), '+12025550123', 'mobile');
+    (uuid_generate_v4(), 'John', 'Doe', (SELECT id FROM addresses WHERE street = '123 Main St'), '[{"number": "+12025550123", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Jane', 'Smith', (SELECT id FROM addresses WHERE street = '456 Queen St'), '[{"number": "+14165550123", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Alice', 'Johnson', (SELECT id FROM addresses WHERE street = '789 King St'), '[{"number": "+442071234567", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Bob', 'Brown', (SELECT id FROM addresses WHERE street = '101 George St'), '[{"number": "+61291234567", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Charlie', 'Davis', (SELECT id FROM addresses WHERE street = '202 Alexanderplatz'), '[{"number": "+49301234567", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'David', 'Miller', (SELECT id FROM addresses WHERE street = '303 Champs-Élysées'), '[{"number": "+33123456789", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Eve', 'Wilson', (SELECT id FROM addresses WHERE street = '404 Via del Corso'), '[{"number": "+39061234567", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Frank', 'Moore', (SELECT id FROM addresses WHERE street = '505 Gran Via'), '[{"number": "+34912345678", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Grace', 'Taylor', (SELECT id FROM addresses WHERE street = '606 Dam Square'), '[{"number": "+31201234567", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Hank', 'Anderson', (SELECT id FROM addresses WHERE street = '707 Grand Place'), '[{"number": "+32212345678", "type": "mobile"}]'),
+    (uuid_generate_v4(), 'Ivy', 'Thomas', (SELECT id FROM addresses WHERE street = '808 Bahnhofstrasse'), '[{"number": "+41441234567", "type": "mobile"}]');
