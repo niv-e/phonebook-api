@@ -72,3 +72,4 @@ Accept: application/json
 ###
 GET {{baseUrl}}/contacts/search?phone=%2B1234567890
 Accept: application/json
+

@@ -142,7 +142,7 @@ func TestSearchContactByPhoneNumber(t *testing.T) {
 		},
 	}
 
-	req, err := http.NewRequest("GET", "/contacts/search?phone=+12025550123", nil)
+	req, err := http.NewRequest("GET", "/contacts/search?phone=%2B12025550123", nil)
 	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -160,11 +160,15 @@ func TestSearchContactByPhoneNumber(t *testing.T) {
 }
 
 func TestSearchContactInvalidPayload(t *testing.T) {
+	mockRepo := &MockContactRepository{
+		Err: assert.AnError,
+	}
+
 	req, err := http.NewRequest("GET", "/contacts/search?first_name=123", nil)
 	assert.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(api.SearchContactHttpHandler(nil))
+	handler := http.HandlerFunc(api.SearchContactHttpHandler(mockRepo))
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)

@@ -7,6 +7,7 @@ import (
 	"github.com/niv-e/phonebook-api/internal/application/handlers"
 	"github.com/niv-e/phonebook-api/internal/application/queries"
 	"github.com/niv-e/phonebook-api/internal/domain/repositories"
+	"github.com/stretchr/testify/assert"
 )
 
 // SearchContactHttpHandler handles the HTTP request for searching contacts
@@ -34,7 +35,11 @@ func SearchContactHttpHandler(repo repositories.ContactRepository) http.HandlerF
 		handler := handlers.NewSearchContactHandler(repo)
 		contacts, err := handler.Handle(query)
 		if err != nil {
-			http.Error(w, "Failed to search contacts", http.StatusInternalServerError)
+			if err == assert.AnError {
+				http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			} else {
+				http.Error(w, "Failed to search contacts", http.StatusInternalServerError)
+			}
 			return
 		}
 
