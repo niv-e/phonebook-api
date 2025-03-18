@@ -20,11 +20,13 @@ import (
 
 func main() {
 	// Load environment variables from .env file
-    err := godotenv.Load()
-    if err != nil {
-      log.Fatal("Error loading .env file")
-    }
-      if err := run(); err != nil {
+	if os.Getenv("ENV") == "development" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
+	if err := run(); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -85,13 +87,15 @@ func newHTTPHandler() http.Handler {
 	}
 
 	repo := persistence.GetContactRepository()
-	// Regiser handlers.
+	// Register handlers.
 	handleFunc("/contacts", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			api.GetContactsHttpHandler(repo)(w, r)
 		case http.MethodPost:
 			api.AddContactHttpHandler(repo)(w, r)
+		case http.MethodDelete:
+			api.DeleteContactHttpHandler(repo)(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

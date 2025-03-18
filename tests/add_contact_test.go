@@ -59,7 +59,7 @@ func TestAddContactHttpHandler_PayloadMissingRequiredFields_ShouldReturnInvalidP
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
-	assert.Equal(t, "INVALID_CONTACT: invalid contact: required fields missing\n", rr.Body.String())
+	assert.Contains(t, rr.Body.String(), "INVALID_CONTACT: invalid contact: required fields missing")
 }
 
 func TestAddContactHttpHandler_PhoneIsNotInFormatE164_ShouldReturnInvalidPhoneNumber(t *testing.T) {
@@ -85,13 +85,13 @@ func TestAddContactHttpHandler_PhoneIsNotInFormatE164_ShouldReturnInvalidPhoneNu
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(api.AddContactHttpHandler(mockRepo))
-	assert.Panics(t, func() {
-		handler.ServeHTTP(rr, req)
-	})
-	//handler.ServeHTTP(rr, req)
+	// assert.Panics(t, func() {
+	// 	handler.ServeHTTP(rr, req)
+	// })
+	handler.ServeHTTP(rr, req)
 
-	//assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	//assert.Contains(t, rr.Body.String(), "violates check constraint")
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	assert.Contains(t, rr.Body.String(), "INVALID_CONTACT")
 }
 
 func TestAddContactHttpHandler_ValidPhoneNumber_ShouldReturnSuccess(t *testing.T) {

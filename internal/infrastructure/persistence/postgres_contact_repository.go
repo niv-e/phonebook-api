@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/niv-e/phonebook-api/internal/application/model"
 	"github.com/niv-e/phonebook-api/internal/domain/entity"
 	"gorm.io/driver/postgres"
@@ -91,6 +92,22 @@ func (r *PostgresContactRepository) FindPaginated(page, pageSize int) ([]model.C
 	}
 
 	return contactDTOs, nil
+}
+
+func (r *PostgresContactRepository) Delete(id uuid.UUID) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete related phones
+		if err := tx.Where("contact_id = ?", id).Delete(&entity.PhoneEntity{}).Error; err != nil {
+			return err
+		}
+
+		// Delete the contact
+		if err := tx.Delete(&entity.ContactEntity{ID: id}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func convertToPhoneEntities(phones []model.PhoneType) []entity.PhoneEntity {

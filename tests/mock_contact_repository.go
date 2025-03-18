@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/google/uuid"
 	"github.com/niv-e/phonebook-api/internal/application/model"
 )
 
@@ -30,4 +31,17 @@ func (m *MockContactRepository) FindPaginated(page, pageSize int) ([]model.Conta
 		end = len(m.Contacts)
 	}
 	return m.Contacts[start:end], nil
+}
+
+func (m *MockContactRepository) Delete(id uuid.UUID) error {
+	if m.Err != nil {
+		return m.Err
+	}
+	for i, contact := range m.Contacts {
+		if *contact.ID == id {
+			m.Contacts = append(m.Contacts[:i], m.Contacts[i+1:]...)
+			return nil
+		}
+	}
+	return nil
 }

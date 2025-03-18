@@ -1,24 +1,30 @@
-POST http://localhost:8080/contacts
+@baseUrl=http://localhost:8080
+#@baseUrl=http://api:8080
+###
+GET {{baseUrl}}/contacts?page=1
+Accept: application/json
+
+###
+POST {{baseUrl}}/contacts
 Content-Type: application/json
 Accept: application/json
 
 {
-  "city": 1,
-  "country": 1,
-  "first_name": "Niv2",
-  "last_name": "Eliyahu",
-  "phones": [
-    {
+    "city": 1,
+    "country": 1,
+    "first_name": "Niv2",
+    "last_name": "Eliyahu",
+    "phones": [
+        {
             "type": "mobile",
             "number": "+1234567890"
-    }
-  ],
+        }
+    ],
     "street": "123 Main St",
     "postal_code": "12345"
 }
 
 ###
-GET http://localhost:8080/contacts?page=1
+@contactId=16a4e190-c9ab-431a-8401-dde695875ea3
+DELETE {{baseUrl}}/contacts?id={{contactId}}
 Accept: application/json
-
-
