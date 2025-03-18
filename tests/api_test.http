@@ -28,3 +28,25 @@ Accept: application/json
 @contactId=16a4e190-c9ab-431a-8401-dde695875ea3
 DELETE {{baseUrl}}/contacts?id={{contactId}}
 Accept: application/json
+
+###
+@contactId=0ef57a66-ce41-4bea-8443-2578228c3f83
+PUT {{baseUrl}}/contacts
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id": "{{contactId}}",
+    "city": 1,
+    "country": 1,
+    "first_name": "UpdatedFirstName",
+    "last_name": "UpdatedLastName",
+    "phones": [
+        {
+            "type": "mobile",
+            "number": "+1234567890"
+        }
+    ],
+    "street": "123 Updated St",
+    "postal_code": "54321"
+}

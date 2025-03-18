@@ -45,3 +45,28 @@ func (m *MockContactRepository) Delete(id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (m *MockContactRepository) FindByID(id uuid.UUID) (model.ContactType, error) {
+	if m.Err != nil {
+		return model.ContactType{}, m.Err
+	}
+	for _, contact := range m.Contacts {
+		if *contact.ID == id {
+			return contact, nil
+		}
+	}
+	return model.ContactType{}, nil
+}
+
+func (m *MockContactRepository) Update(contact model.ContactType) error {
+	if m.Err != nil {
+		return m.Err
+	}
+	for i, c := range m.Contacts {
+		if *c.ID == *contact.ID {
+			m.Contacts[i] = contact
+			return nil
+		}
+	}
+	return nil
+}

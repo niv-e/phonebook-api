@@ -9,4 +9,6 @@ type ContactRepository interface {
 	Save(contact model.ContactType) error
 	FindPaginated(page, pageSize int) ([]model.ContactType, error)
 	Delete(id uuid.UUID) error
+	FindByID(id uuid.UUID) (model.ContactType, error)
+	Update(contact model.ContactType) error
 }

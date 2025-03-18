@@ -94,6 +94,8 @@ func newHTTPHandler() http.Handler {
 			api.GetContactsHttpHandler(repo)(w, r)
 		case http.MethodPost:
 			api.AddContactHttpHandler(repo)(w, r)
+		case http.MethodPut:
+			api.UpdateContactHttpHandler(repo)(w, r)
 		case http.MethodDelete:
 			api.DeleteContactHttpHandler(repo)(w, r)
 		default:

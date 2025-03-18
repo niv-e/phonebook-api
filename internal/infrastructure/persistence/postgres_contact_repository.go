@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/niv-e/phonebook-api/internal/application/model"
+	"github.com/niv-e/phonebook-api/internal/domain"
 	"github.com/niv-e/phonebook-api/internal/domain/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -108,6 +109,51 @@ func (r *PostgresContactRepository) Delete(id uuid.UUID) error {
 
 		return nil
 	})
+}
+
+func (r *PostgresContactRepository) FindByID(id uuid.UUID) (model.ContactType, error) {
+	var contact entity.ContactEntity
+	if err := r.db.Preload("Address.City.Country").Preload("Phones").First(&contact, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return model.ContactType{}, domain.NewInvalidContactError("contact not found")
+		}
+		return model.ContactType{}, err
+	}
+
+	return model.ContactType{
+		ID:        &contact.ID,
+		FirstName: contact.FirstName,
+		LastName:  contact.LastName,
+		Address: model.AddressType{
+			Street:      contact.Address.Street,
+			PostalCode:  contact.Address.PostalCode,
+			CityId:      contact.Address.City.ID,
+			CityName:    contact.Address.City.Name,
+			CountryId:   contact.Address.City.Country.ID,
+			CountryName: contact.Address.City.Country.Name,
+		},
+		Phones: convertToPhoneDTOs(contact.Phones),
+	}, nil
+}
+
+func (r *PostgresContactRepository) Update(contact model.ContactType) error {
+	contactEntity := entity.ContactEntity{
+		ID:        *contact.ID,
+		FirstName: contact.FirstName,
+		LastName:  contact.LastName,
+		Address: entity.AddressEntity{
+			Street:     contact.Address.Street,
+			PostalCode: contact.Address.PostalCode,
+			City: entity.CityEntity{
+				ID: contact.Address.CityId,
+				Country: entity.CountryEntity{
+					ID: contact.Address.CountryId,
+				},
+			},
+		},
+		Phones: convertToPhoneEntities(contact.Phones),
+	}
+	return r.db.Save(&contactEntity).Error
 }
 
 func convertToPhoneEntities(phones []model.PhoneType) []entity.PhoneEntity {
