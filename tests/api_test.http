@@ -1,0 +1,24 @@
+POST http://localhost:8080/contacts
+Content-Type: application/json
+Accept: application/json
+
+{
+  "city": 1,
+  "country": 1,
+  "first_name": "Niv2",
+  "last_name": "Eliyahu",
+  "phones": [
+    {
+            "type": "mobile",
+            "number": "+1234567890"
+    }
+  ],
+    "street": "123 Main St",
+    "postal_code": "12345"
+}
+
+###
+GET http://localhost:8080/contacts?page=1
+Accept: application/json
+
+

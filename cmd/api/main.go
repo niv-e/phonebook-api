@@ -10,13 +10,21 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/joho/godotenv"
+	_ "github.com/niv-e/phonebook-api/docs" // This is required to load the generated docs
 	api "github.com/niv-e/phonebook-api/internal/delivery/http/endpoint"
+	"github.com/niv-e/phonebook-api/internal/infrastructure/persistence"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
-	if err := run(); err != nil {
+	// Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+      log.Fatal("Error loading .env file")
+    }
+      if err := run(); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -76,11 +84,19 @@ func newHTTPHandler() http.Handler {
 		mux.Handle(pattern, handler)
 	}
 
-	// Register handlers.
-	handleFunc("/contacts/", api.GetContactsHttpHandler)
-	handleFunc("/contacts", api.AddContactHttpHandler)
+	repo := persistence.GetContactRepository()
+	// Regiser handlers.
+	handleFunc("/contacts", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			api.GetContactsHttpHandler(repo)(w, r)
+		case http.MethodPost:
+			api.AddContactHttpHandler(repo)(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Serve the Swagger UI
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// Add HTTP instrumentation for the whole server.

@@ -46,7 +46,6 @@ func NewPostgresContactRepository(dsn string) (*PostgresContactRepository, error
 
 func (r *PostgresContactRepository) Save(contact model.ContactType) error {
 	contactEntity := entity.ContactEntity{
-		ID:        *contact.ID,
 		FirstName: contact.FirstName,
 		LastName:  contact.LastName,
 		Address: entity.AddressEntity{
@@ -61,6 +60,8 @@ func (r *PostgresContactRepository) Save(contact model.ContactType) error {
 		},
 		Phones: convertToPhoneEntities(contact.Phones),
 	}
+	log.Printf("Saving contact: %v", contactEntity)
+	log.Printf("object address: %v", &contactEntity)
 	return r.db.Save(&contactEntity).Error
 }
 

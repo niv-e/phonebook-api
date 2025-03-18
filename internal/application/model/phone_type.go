@@ -7,8 +7,8 @@ import (
 )
 
 type PhoneType struct {
-	Number string
-	Type   string
+	Number string `json:"number" validate:"required,e164"`
+	Type   string `json:"type" validate:"required"`
 }
 
 func NewPhone(phoneType string, value string) (PhoneType, error) {
