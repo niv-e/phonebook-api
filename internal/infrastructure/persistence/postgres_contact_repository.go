@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/niv-e/phonebook-api/internal/application/model"
 	"github.com/niv-e/phonebook-api/internal/domain"
 	"github.com/niv-e/phonebook-api/internal/domain/entity"
+	"go.opentelemetry.io/otel"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,10 +42,16 @@ func GetContactRepository() *PostgresContactRepository {
 }
 
 func NewPostgresContactRepository(dsn string) (*PostgresContactRepository, error) {
+	tracer := otel.Tracer("postgres-contact-repository")
+	_, span := tracer.Start(context.Background(), "NewPostgresContactRepository")
+	defer span.End()
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
+
 	return &PostgresContactRepository{db: db}, nil
 }
 
@@ -179,8 +187,8 @@ func (r *PostgresContactRepository) Search(firstName, lastName, fullName, phone 
 		query = query.Where("CONCAT(first_name, ' ', last_name) ILIKE ?", "%"+fullName+"%")
 	}
 	if phone != "" {
-        query = query.Where("EXISTS (SELECT 1 FROM jsonb_array_elements(phones) AS p WHERE p->>'number' ILIKE ?)", "%"+phone+"%")
-    }
+		query = query.Where("EXISTS (SELECT 1 FROM jsonb_array_elements(phones) AS p WHERE p->>'number' ILIKE ?)", "%"+phone+"%")
+	}
 
 	if err := query.Find(&contacts).Error; err != nil {
 		return nil, err

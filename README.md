@@ -88,3 +88,7 @@ erDiagram
 4. Access Jaeger UI at http://localhost:16686.
 5. Access Prometheus UI at http://localhost:9090.
 6. Access Grafana UI at http://localhost:3000.
+
+## API Testing with `api_test.http`
+
+The `api_test.http` file contains a set of HTTP requests for testing the API endpoints. You can use tools like VS Code REST Client or Postman to run these tests.

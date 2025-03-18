@@ -7,16 +7,16 @@ receivers:
   otlp:
     protocols:
       grpc:
-      http:  
+        endpoint: "0.0.0.0:4317" # gRPC receiver on port 4317.
+      http:
+        endpoint: "0.0.0.0:4318" # HTTP receiver on port 4318.
 
 processors:
   memory_limiter:
     check_interval: 1s
     limit_percentage: 50
     spike_limit_percentage: 30
-  
   batch:
-    
   attributes:
     actions:
       - key: region
@@ -24,31 +24,21 @@ processors:
         action: insert
 
 exporters:
-  debug:
   otlp:
-    endpoint: "${JAEGER_ENDPOINT}"
+    endpoint: "jaeger:4317"
     tls:
       insecure: true
-  prometheus:
-    endpoint: "0.0.0.0:8889"
+  debug:
+    verbosity: detailed # Replaces 'logging' exporter; same verbosity level.
 
 service:
   pipelines:
     traces:
-      receivers:
-        - otlp
+      receivers: [otlp]
       processors: [memory_limiter, attributes, batch]
-      exporters:
-        - debug
-        - otlp
+      exporters: [otlp, debug] # Updated to 'debug'.
     metrics:
-      receivers:
-        - otlp
+      receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters:
-        - debug
-        - prometheus
-
-  extensions:
-    - health_check
-    - zpages
+      exporters: [debug] # Updated to 'debug'.
+  extensions: [health_check, zpages]

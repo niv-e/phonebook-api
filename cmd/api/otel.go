@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -42,8 +44,8 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	// Set up trace provider.
-	tracerProvider, err := newTracerProvider()
+	// Set up trace provider with OTLP exporter.
+	tracerProvider, err := newTracerProvider(ctx)
 	if err != nil {
 		handleErr(err)
 		return
@@ -51,7 +53,6 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	// Set up meter provider.
 	meterProvider, err := newMeterProvider()
 	if err != nil {
 		handleErr(err)
@@ -60,7 +61,7 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-	// Set up logger provider.
+	// Set up logger provider (unchanged for now).
 	loggerProvider, err := newLoggerProvider()
 	if err != nil {
 		handleErr(err)
@@ -79,16 +80,38 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTracerProvider() (*trace.TracerProvider, error) {
-	traceExporter, err := stdouttrace.New(
-		stdouttrace.WithPrettyPrint())
+func newTracerProvider(ctx context.Context) (*trace.TracerProvider, error) {
+	// Get protocol and endpoint from environment variables.
+	protocol := os.Getenv("OTEL_EXPORTER_PROTOCOL") // "grpc" or "http"
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "otel-collector:4317" // Default to gRPC endpoint if not specified.
+	}
+
+	var traceExporter trace.SpanExporter
+	var err error
+
+	switch protocol {
+	case "grpc":
+		traceExporter, err = otlptracegrpc.New(ctx,
+			otlptracegrpc.WithEndpoint(endpoint),
+			otlptracegrpc.WithInsecure(), // Use insecure for local development.
+		)
+	case "http", "": // Default to HTTP if unspecified.
+		traceExporter, err = otlptracehttp.New(ctx,
+			otlptracehttp.WithEndpoint(endpoint),
+			otlptracehttp.WithInsecure(),
+		)
+	default:
+		return nil, errors.New("unsupported OTEL_EXPORTER_PROTOCOL: must be 'grpc' or 'http'")
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	tracerProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter,
-			// Default is 5s. Set to 1s for demonstrative purposes.
 			trace.WithBatchTimeout(time.Second)),
 	)
 	return tracerProvider, nil
@@ -102,7 +125,6 @@ func newMeterProvider() (*metric.MeterProvider, error) {
 
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(metric.NewPeriodicReader(metricExporter,
-			// Default is 1m. Set to 3s for demonstrative purposes.
 			metric.WithInterval(3*time.Second))),
 	)
 	return meterProvider, nil
